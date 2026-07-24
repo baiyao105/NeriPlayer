@@ -39,6 +39,7 @@ import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.drawable.Icon
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.media.AudioManager
@@ -49,6 +50,7 @@ import android.os.SystemClock
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Patterns
 import android.util.TypedValue
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
@@ -111,6 +113,8 @@ import moe.ouom.neriplayer.data.settings.DEFAULT_PLAYBACK_SERVICE_IDLE_SHUTDOWN_
 import moe.ouom.neriplayer.data.settings.PlaybackServiceIdleShutdownPreference
 import moe.ouom.neriplayer.data.settings.readPlaybackPreferenceSnapshot
 import moe.ouom.neriplayer.data.traffic.isOfflineModeNow
+import moe.ouom.neriplayer.util.media.IsLandHelp
+import moe.ouom.neriplayer.util.media.buildRemoteSongShareUrl
 import moe.ouom.neriplayer.util.media.offlineCachedImageRequest
 
 private suspend inline fun <T> kotlinx.coroutines.flow.Flow<T>.collectSafely(
@@ -1554,6 +1558,22 @@ class AudioPlayerService : Service() {
         currentNotificationLargeIcon?.let { builder.setLargeIcon(it) }
 
         return builder.build().apply {
+            if (song != null){
+                val shareurl = buildRemoteSongShareUrl(song, PlayerManager.currentPlaylist)
+                if (shareurl.isUrl()) {
+                    val icon = Bundle()
+                    icon.putParcelable("miui_media_album_icon", Icon.createWithResource(this@AudioPlayerService, R.drawable.ic_notification_small))
+
+                    val bundle = IsLandHelp.isLandMusicShare(
+                        addpic = icon,
+                        title = song.name,
+                        content = song.artist,
+                        shareContent = shareurl
+                    )
+                    extras.putAll(bundle)
+                }
+            }
+
             if (currentStatusBarLyricState.hasTicker) {
                 val FLAG_ALWAYS_SHOW_TICKER = 0x01000000
                 val FLAG_ONLY_UPDATE_TICKER = 0x02000000
@@ -1567,6 +1587,10 @@ class AudioPlayerService : Service() {
             }
         }
 
+    }
+
+    private fun String.isUrl(): Boolean {
+        return Patterns.WEB_URL.matcher(this).matches()
     }
 
     private fun buildBootstrapNotification(): Notification {

@@ -75,6 +75,7 @@ import moe.ouom.neriplayer.ui.viewmodel.album.isNeteaseAlbumNavigationSource
 import moe.ouom.neriplayer.ui.viewmodel.album.neteaseAlbumDisplayName
 import moe.ouom.neriplayer.ui.viewmodel.album.resolveNeteaseAlbum
 import moe.ouom.neriplayer.ui.viewmodel.tab.AlbumSummary
+import moe.ouom.neriplayer.util.media.buildRemoteSongShareUrl
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
